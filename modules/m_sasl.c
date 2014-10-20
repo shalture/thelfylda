@@ -40,6 +40,8 @@
 #include "s_serv.h"
 #include "s_stats.h"
 #include "string.h"
+#include "s_newconf.h"
+#include "s_conf.h"
 
 static int mr_authenticate(struct Client *, struct Client *, int, const char **);
 static int me_sasl(struct Client *, struct Client *, int, const char **);
@@ -72,6 +74,7 @@ mr_authenticate(struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
 {
 	struct Client *agent_p = NULL;
+	struct Client *saslserv_p = NULL;
 
 	/* They really should use CAP for their own sake. */
 	if(!IsCapable(source_p, CLICAP_SASL))
@@ -83,7 +86,14 @@ mr_authenticate(struct Client *client_p, struct Client *source_p,
 		return 0;
 	}
 
-	if(source_p->preClient->sasl_complete)
+	saslserv_p = find_named_client(ConfigFileEntry.saslservnick);
+	if (saslserv_p == NULL || !IsService(saslserv_p))
+	{
+		sendto_one(source_p, form_str(ERR_SASLABORTED), me.name, EmptyString(source_p->name) ? "*" : source_p->name);
+		return 0;
+	}
+
+	if (source_p->preClient->sasl_complete)
 	{
 		sendto_one(source_p, form_str(ERR_SASLALREADY), me.name, EmptyString(source_p->name) ? "*" : source_p->name);
 		return 0;

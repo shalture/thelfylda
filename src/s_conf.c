@@ -692,6 +692,7 @@ set_default_conf(void)
 	ConfigFileEntry.default_operstring = NULL;
 	ConfigFileEntry.default_adminstring = NULL;
 	ConfigFileEntry.servicestring = NULL;
+	ConfigFileEntry.saslservnick = NULL;
 
 	ConfigFileEntry.default_umodes = UMODE_INVISIBLE;
 	ConfigFileEntry.failed_oper_notice = YES;
@@ -885,6 +886,9 @@ validate_conf(void)
 
 	if (ConfigFileEntry.servicestring == NULL)
 		ConfigFileEntry.servicestring = rb_strdup("is a Network Service");
+
+	if (ConfigFileEntry.saslservnick == NULL)
+		ConfigFileEntry.saslservnick = rb_strdup("SaslServ");
 
 	/* RFC 1459 says 1 message per 2 seconds on average and bursts of
 	 * 5 messages are acceptable, so allow at least that.
@@ -1489,6 +1493,8 @@ clear_out_old_conf(void)
 	ConfigFileEntry.servicestring = NULL;
 	rb_free(ConfigFileEntry.kline_reason);
 	ConfigFileEntry.kline_reason = NULL;
+	rb_free(ConfigFileEntry.saslservnick);
+	ConfigFileEntry.saslservnick = NULL;
 
 	/* clean out log */
 	rb_free(ConfigFileEntry.fname_userlog);
