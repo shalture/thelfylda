@@ -73,7 +73,6 @@ static int
 mr_authenticate(struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
 {
-	struct Client *agent_p = NULL;
 	struct Client *saslserv_p = NULL;
 
 	/* They really should use CAP for their own sake. */
@@ -112,22 +111,15 @@ mr_authenticate(struct Client *client_p, struct Client *source_p,
 		add_to_id_hash(source_p->id, source_p);
 	}
 
-	if(*source_p->preClient->sasl_agent)
-		agent_p = find_id(source_p->preClient->sasl_agent);
-
-	if(agent_p == NULL)
+	if (source_p->preClient == NULL)
 	{
 		if (!strcmp(parv[1], "EXTERNAL") && source_p->certfp != NULL)
-			sendto_server(NULL, NULL, CAP_TS6|CAP_ENCAP, NOCAPS, ":%s ENCAP * SASL %s * S %s %s", me.id,
-					source_p->id, parv[1],
-					source_p->certfp);
+			sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s S %s %s", me.id, saslserv_p->servptr->name, source_p->id, saslserv_p->id, parv[1], source_p->certfp);
 		else
-			sendto_server(NULL, NULL, CAP_TS6|CAP_ENCAP, NOCAPS, ":%s ENCAP * SASL %s * S %s", me.id,
-					source_p->id, parv[1]);
+			sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s S %s", me.id, saslserv_p->servptr->name, source_p->id, saslserv_p->id, parv[1]);
 	}
 	else
-		sendto_one(agent_p, ":%s ENCAP %s SASL %s %s C %s", me.id, agent_p->servptr->name,
-				source_p->id, agent_p->id, parv[1]);
+		sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s C %s", me.id, saslserv_p->servptr->name, source_p->id, saslserv_p->id, parv[1]);
 	source_p->preClient->sasl_out++;
 
 	return 0;
